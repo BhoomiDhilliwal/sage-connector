@@ -1,13 +1,16 @@
 const express = require('express');
 const axios = require('axios');
+const dotenv = require('dotenv');
+dotenv.config();
+
 const app = express();
 const PORT = 4000;
 
-// Config
-const SAGE_USERNAME = 'MANAGER';  
-const SAGE_PASSWORD = '#Demo@2025';
-const SAGE_BASE_URL = 'http://crmlanding:5495/sdata/accounts50/GCRM';
-const COMPANY_GUID = '{3C87266A-B8AF-46EE-AF8E-D5E9A181DAAC}';
+// Load from .env
+const SAGE_USERNAME = process.env.SAGE_USERNAME;
+const SAGE_PASSWORD = process.env.SAGE_PASSWORD;
+const SAGE_BASE_URL = process.env.SAGE_BASE_URL;
+const COMPANY_GUID = process.env.COMPANY_GUID;
 
 const ALLOWED_ENTITIES = [
   'tradingAccounts',
@@ -16,7 +19,6 @@ const ALLOWED_ENTITIES = [
   'purchaseOrders',
   'productGroups',
   'salesOrders',
-  
 ];
 
 app.get('/fetch-sage', async (req, res) => {
@@ -40,16 +42,11 @@ app.get('/fetch-sage', async (req, res) => {
       }
     });
 
-    // ✅ Forward to Server 2
-    try {
-      await axios.post('http://localhost:5000/api/receive-data', {
-        entity,
-        data: response.data.$resources || []
-      });
-      console.log(`✅ Forwarded ${entity} data to Server 2`);
-    } catch (forwardError) {
-      console.error('❌ Failed to send data to Server 2:', forwardError.message);
-    }
+    // ✅ Optional: Forward to Server 2
+    // await axios.post('http://localhost:5000/api/receive-data', {
+    //   entity,
+    //   data: response.data.$resources || []
+    // });
 
     res.json({
       entity,
@@ -60,7 +57,6 @@ app.get('/fetch-sage', async (req, res) => {
     console.error('Error:', error.message);
     res.status(500).json({ error: 'Failed to fetch from Sage SData' });
   }
-
 });
 
 app.listen(PORT, () => {
